@@ -13,7 +13,8 @@
 //   - a default Network ACL is created.
 //   - a default Security group
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
 
   tags = {
     Name = "Test VPC"
@@ -25,13 +26,15 @@ resource "aws_vpc" "main" {
 
 // Note, require to have same number of subnets and zones 
 resource "aws_subnet" "public_subnets" {
-  count             = length(var.public_subnet_cidrs)
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = element(var.public_subnet_cidrs, count.index)
-  availability_zone = element(var.azs, count.index)
+  count                   = length(var.public_subnet_cidrs)
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = element(var.public_subnet_cidrs, count.index)
+  availability_zone       = element(var.azs, count.index)
+  map_public_ip_on_launch = true
 
   tags = {
-    Name = "Public Subnet ${count.index + 1}"
+    Name = "Public Subnet ${count.index + 1}",
+    Tier = "Public"
   }
 }
 
@@ -43,7 +46,8 @@ resource "aws_subnet" "private_subnets" {
   availability_zone = element(var.azs, count.index)
 
   tags = {
-    Name = "Private Subnet ${count.index + 1}"
+    Name = "Private Subnet ${count.index + 1}",
+    Tier = "Private"
   }
 }
 
