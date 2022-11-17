@@ -136,9 +136,9 @@ data "template_file" "user-data-file" {
 
 resource "aws_launch_template" "test_launch_template" {
   name                    = "TEST_LT"
-  image_id                = "ami-0f924dc71d44d23e2"
-  instance_type           = "t2.micro"
-  key_name                = "Az-Linux-KP"
+  image_id                = var.ami
+  instance_type           = var.instance_type
+  key_name                = var.key_name
   disable_api_stop        = false
   disable_api_termination = false
   
@@ -217,3 +217,9 @@ resource "aws_autoscaling_group" "test_my_asg" {
   vpc_zone_identifier = data.aws_subnets.test_public_subnet.ids
 }
 
+
+//////////////////////////////////////////
+// TODO add output
+output publicdns {
+  value = aws_lb.test_lb.dns_name
+}
