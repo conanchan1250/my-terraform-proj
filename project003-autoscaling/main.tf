@@ -1,3 +1,14 @@
+module "main-vpc" {
+  source = "../modules/conan-aws-vpc"
+
+  name       = "My AutoScale VPC"
+  cidr_block = "10.0.0.0/16"
+
+  public_subnet_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  private_subnet_cidrs = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  availability_zones   = ["us-east-2a", "us-east-2b", "us-east-2c"]
+}
+
 ///////////////////////////////////////////////////////////
 // setup S3 bucket for use by the EC2 machines
 resource "aws_s3_bucket" "test_bucket" {
@@ -70,33 +81,11 @@ resource "aws_iam_instance_profile" "test_role_profile" {
 
 
 ///////////////////////////////////////////////////////////
-// Get VPC and its public subnets
-data "aws_vpc" "test_vpc" {
-  filter {
-    name   = "tag:Name"
-    values = ["Test VPC"]
-  }
-}
-
-data "aws_subnets" "test_public_subnet" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.test_vpc.id]
-  }
-
-  tags = {
-    Tier = "Public"
-    //Name = "Public Subnet 1"
-  }
-}
-
-
-///////////////////////////////////////////////////////////
 // Create security group for web access
 resource "aws_security_group" "test_web_access" {
   name        = "TEST_WEB_ACCESS"
   description = "Allow Basic Web access"
-  vpc_id      = data.aws_vpc.test_vpc.id
+  vpc_id      = module.main-vpc.vpcid
 
   ingress {
     description = "SSH from Everywhere"
@@ -158,7 +147,7 @@ resource "aws_lb_target_group" "test_web_tg" {
   name     = "TEST-WEB-TG"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = data.aws_vpc.test_vpc.id
+  vpc_id   = module.main-vpc.vpcid
 }
 
 
@@ -168,7 +157,7 @@ resource "aws_lb" "test_lb" {
   ip_address_type    = "ipv4"
   load_balancer_type = "application"
   security_groups    = [aws_security_group.test_web_access.id]
-  subnets            = data.aws_subnets.test_public_subnet.ids
+  subnets            = module.main-vpc.public_subnet_ids
 
   enable_deletion_protection = false
   enable_http2               = true
@@ -214,7 +203,7 @@ resource "aws_autoscaling_group" "test_my_asg" {
   termination_policies = [
     "Default",
   ]
-  vpc_zone_identifier = data.aws_subnets.test_public_subnet.ids
+  vpc_zone_identifier = module.main-vpc.public_subnet_ids
 }
 
 
