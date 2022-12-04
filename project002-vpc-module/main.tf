@@ -10,4 +10,11 @@ module "my-aws-vpc" {
 }
 
 
+output vpcid {
+  value = module.my-aws-vpc.vpcid
+}
 
+
+output "public_subnet_ids" {
+  value = module.my-aws-vpc.public_subnet_ids
+}
