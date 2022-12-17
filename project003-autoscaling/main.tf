@@ -83,8 +83,8 @@ resource "aws_iam_instance_profile" "test_role_profile" {
 ///////////////////////////////////////////////////////////
 // Create security group for web access
 resource "aws_security_group" "test_web_access" {
-  name        = "TEST_WEB_ACCESS"
-  description = "Allow Basic Web access"
+  name        = var.SECURITY_GROUP_NAME
+  description = var.SECURITY_GROUP_DESCRIPTION
   vpc_id      = module.main-vpc.vpcid
 
   ingress {
